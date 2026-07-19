@@ -1,0 +1,18 @@
+# NetPulse default config. Copy this to your OS config dir to override
+# (see README.md "Configuration"); this file is also read if present in the
+# current working directory.
+
+server:
+  host: 127.0.0.1
+  port: 8742
+
+lan:
+  ping_targets:
+    - 8.8.8.8
+    - 1.1.1.1
+    - google.com
+  sample_interval_seconds: 2
+  mtr_interval_seconds: 45
+  mtr_cycles: 5
+  raw_retention_hours: 48
+  retention_days: 30

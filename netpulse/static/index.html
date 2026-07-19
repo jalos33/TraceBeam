@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetPulse - LAN Monitor</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/vendor/chart.umd.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <h1>NetPulse <span class="subtitle">LAN Monitor</span></h1>
+        <div class="header-status">
+            <span id="health-dot" class="dot"></span>
+            <span id="health-text">Checking...</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="lan-monitor">
+            <!-- Toolbar -->
+            <div class="mon-toolbar">
+                <div class="mon-add">
+                    <input type="text" id="mon-name" placeholder="Name (optional)" class="mon-input mon-input-name">
+                    <input type="text" id="mon-address" placeholder="Target: IP, IPv6, or URL" class="mon-input mon-input-addr">
+                    <select id="mon-protocol" class="mon-input">
+                        <option value="auto">Auto</option>
+                        <option value="ipv4">IPv4</option>
+                        <option value="ipv6">IPv6</option>
+                    </select>
+                    <button class="btn btn-success" onclick="addTarget()">+ Add Target</button>
+                </div>
+                <div class="mon-controls">
+                    <label class="mon-field">Window
+                        <select id="mon-window" class="mon-input" onchange="onWindowChange()">
+                            <option value="5m">5 min</option>
+                            <option value="15m">15 min</option>
+                            <option value="30m">30 min</option>
+                            <option value="1h" selected>1 hour</option>
+                            <option value="4h">4 hours</option>
+                            <option value="12h">12 hours</option>
+                            <option value="24h">24 hours</option>
+                            <option value="2d">2 days</option>
+                            <option value="4d">4 days</option>
+                            <option value="7d">7 days</option>
+                            <option value="14d">14 days</option>
+                            <option value="30d">30 days</option>
+                        </select>
+                    </label>
+                    <button class="btn btn-sm" id="mon-pause" onclick="togglePause()">⏸ Pause</button>
+                    <div class="mon-legend">
+                        <span class="lg-item"><i class="lg-swatch" style="background:var(--good)"></i>Good</span>
+                        <span class="lg-item"><i class="lg-swatch" style="background:var(--warn)"></i>Warn</span>
+                        <span class="lg-item"><i class="lg-swatch" style="background:var(--bad)"></i>Loss / High</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary (All Targets) -->
+            <div id="monitor-summary">
+                <div class="card mon-table-card">
+                    <div class="card-header">
+                        <h2>All Targets</h2>
+                        <span id="mon-updated" class="mon-updated"></span>
+                    </div>
+                    <div class="mon-table-wrap">
+                        <table class="mon-table" id="mon-summary-table">
+                            <thead>
+                                <tr>
+                                    <th class="c-status"></th>
+                                    <th class="c-name">Name</th>
+                                    <th class="c-ip">Host</th>
+                                    <th class="c-num">Cur</th>
+                                    <th class="c-num">Avg</th>
+                                    <th class="c-num">Min</th>
+                                    <th class="c-num">Max</th>
+                                    <th class="c-num">Jitter</th>
+                                    <th class="c-num">PL%</th>
+                                    <th class="c-num">MOS</th>
+                                    <th class="c-num">Count</th>
+                                    <th class="c-num">Err</th>
+                                    <th class="c-spark">Latency / Loss</th>
+                                    <th class="c-act"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="mon-summary-body">
+                                <tr><td colspan="14" class="empty">No targets yet — add one above to start monitoring.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Stacked per-target timelines -->
+                <div id="mon-strips"></div>
+            </div>
+
+            <!-- Detail (Single Target) -->
+            <div id="monitor-detail" style="display:none">
+                <div class="mon-detail-head">
+                    <button class="btn btn-sm" onclick="closeDetail()">← All Targets</button>
+                    <div class="mon-detail-title">
+                        <span id="detail-name">Target</span>
+                        <span id="detail-host" class="mon-detail-host"></span>
+                    </div>
+                    <span id="detail-mtr-ts" class="mon-updated"></span>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h2>Route / Hops</h2></div>
+                    <div class="mon-table-wrap">
+                        <table class="mon-table hop-table">
+                            <thead>
+                                <tr>
+                                    <th class="c-status"></th>
+                                    <th class="c-num">Hop</th>
+                                    <th class="c-ip">IP</th>
+                                    <th class="c-name">Name</th>
+                                    <th class="c-num">PL%</th>
+                                    <th class="c-num">Sent</th>
+                                    <th class="c-num">Last</th>
+                                    <th class="c-num">Avg</th>
+                                    <th class="c-num">Best</th>
+                                    <th class="c-num">Wrst</th>
+                                    <th class="c-graph">Latency</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detail-hops-body">
+                                <tr><td colspan="11" class="empty">Waiting for first hop-stats run…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Latency Timeline</h2>
+                        <span class="mon-axis-note">Green→amber→red = latency quality · red bands = packet loss</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container timeline">
+                            <canvas id="detail-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
