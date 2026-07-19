@@ -1,41 +1,168 @@
 # NetPulse
 
 A cross-platform (Windows / macOS / Linux) continuous LAN monitoring
-dashboard — ping latency, packet loss, jitter, MOS, and per-hop route stats,
-graphed live. Same PingPlotter-style dashboard as the WiPie project's LAN
-Monitor tab, rebuilt as a standalone desktop app with only open-source
-dependencies.
+dashboard — ping latency, packet loss, jitter, MOS, and per-hop route stats
+(like `mtr`), graphed live. Same PingPlotter-style dashboard as the WiPie
+project's LAN Monitor tab, rebuilt as a standalone desktop app with only
+open-source dependencies.
 
 Runs as a local web server (FastAPI) that opens your default browser — no
 Electron, no bundled browser runtime, nothing proprietary.
 
 ---
 
-## Install & run
+## Quick Start
 
-There are two ways to run NetPulse. The prebuilt executable needs **nothing
-installed**; running from source needs Python.
+Two things matter before you start:
 
-### Option A — Prebuilt executable (recommended, zero dependencies)
+1. **Where to get it** — download a prebuilt executable (no Python needed),
+   or run from source.
+2. **Ping vs. hop stats** — basic latency/loss monitoring works immediately
+   with no special permissions. The per-hop route view (the `mtr`-style
+   feature) needs elevated privileges on every OS — that's not a bug, see
+   [why below](#permissions).
 
-Download the executable for your OS from the
-[Actions build artifacts](../../actions) (or a release), then:
+### 1. Download
 
-| OS | File | Run it |
-|----|------|--------|
-| **Windows** | `NetPulse.exe` | Double-click it, or `NetPulse.exe` in a terminal |
-| **macOS** | `NetPulse` | `./NetPulse` in Terminal (see [Permissions](#permissions) for hop stats) |
-| **Linux** | `NetPulse` | `chmod +x NetPulse && ./NetPulse` |
+Go to the repo's **[Actions tab](../../actions)**, click the most recent
+green **Build** run, scroll to **Artifacts**, and download the zip for your
+OS (`NetPulse-windows`, `NetPulse-macos`, or `NetPulse-linux`). You'll need
+to be logged into GitHub with access to this repo — artifacts aren't public.
+Unzip it; you'll have one file: `NetPulse` (`NetPulse.exe` on Windows).
 
-It starts a local server and opens `http://127.0.0.1:8742` in your default
-browser automatically. The executable is fully self-contained — Python and
-all libraries are bundled inside it. There are **no system packages to
-install**: NetPulse talks ICMP directly via raw sockets and does **not**
-depend on the OS `ping`, `mtr`, or `traceroute` binaries.
+### 2. First run — per OS
 
-### Option B — From source
+**macOS**
 
-Requires **Python 3.10 or newer** (developed and packaged on 3.12).
+```bash
+cd ~/Downloads          # or wherever you unzipped it
+chmod +x NetPulse
+./NetPulse
+```
+
+Gatekeeper will likely block it the first time since it isn't signed by an
+Apple developer ID: *"NetPulse cannot be opened because Apple cannot check
+it for malicious software."* Fix it once with either:
+
+```bash
+xattr -d com.apple.quarantine ./NetPulse
+```
+
+...or in Finder: right-click (Control-click) `NetPulse` → **Open** →
+confirm **Open** in the dialog. After that first approval it runs normally.
+
+**Windows**
+
+Double-click `NetPulse.exe`. SmartScreen will likely show *"Windows
+protected your PC"* since it's unsigned — click **More info** → **Run
+anyway**. This appears once per download.
+
+**Linux**
+
+```bash
+chmod +x NetPulse
+./NetPulse
+```
+
+### 3. It's running
+
+A browser tab opens automatically at `http://127.0.0.1:8742` with three
+seeded targets (`8.8.8.8`, `1.1.1.1`, `google.com`) already collecting data.
+Add your own target (router IP, a server you care about, etc.) from the
+toolbar at the top.
+
+Click any target row to open its detail view — latency timeline chart plus
+the **Route / Hops** table. If that table says *"Hop data needs elevated
+privileges"*, that's expected on a normal (non-admin) launch — see the next
+section to enable it.
+
+### 4. Want to see hop stats (the `mtr`-style view)?
+
+Ping/loss monitoring already works with the command above. To also populate
+the **Route / Hops** table, relaunch with elevated privileges:
+
+| OS | Command |
+|----|---------|
+| **macOS** | `sudo ./NetPulse` |
+| **Linux (recommended, no root needed)** | `sudo setcap cap_net_raw+ep ./NetPulse` once, then just `./NetPulse` normally from then on |
+| **Linux (quick/one-off)** | `sudo ./NetPulse` |
+| **Windows** | Right-click `NetPulse.exe` → **Run as administrator** |
+
+If something's already using the port (e.g. an earlier unprivileged run you
+forgot to stop), stop that one first — see
+[Troubleshooting](#troubleshooting).
+
+---
+
+## Permissions — why elevation is needed at all
+
+NetPulse sends ICMP via raw sockets (through `icmplib`, pure Python — no
+shelling out to `ping`/`mtr`, which behave inconsistently across OSes). Raw
+sockets are privileged on most systems, but **how much** privilege you need
+depends on the feature:
+
+- **Ping monitoring** (the main "All Targets" latency/loss view) runs
+  **unprivileged** on macOS and most Linux setups — no admin, no sudo. This
+  is the common case; the Quick Start commands above already cover it.
+- **Per-hop route stats** (the "Route / Hops" detail view) always need a raw
+  socket on every OS, because setting the TTL per-probe requires one. There
+  is no unprivileged fallback for this — it's inherent to how traceroute
+  works, the same reason the system `mtr`/`traceroute` binaries need
+  root/setuid too.
+
+**Prefer least privilege — don't reach for root/admin unless you actually
+want hop stats.** On Linux specifically, `setcap` (see table above) is
+better than `sudo` long-term: it grants the binary just the one raw-socket
+capability and otherwise runs as your normal user, so it can't leave
+root-owned files behind.
+
+> **Why avoid running the whole app as root/sudo where you can:** it makes
+> the database and data directory root-owned, which can make a later
+> non-root run fail to open its own files (see
+> [Troubleshooting](#troubleshooting) if that happens).
+
+---
+
+## Troubleshooting
+
+**"Address already in use" / server won't start.** Another NetPulse instance
+(privileged or not) is already bound to port 8742. Find and stop it:
+
+```bash
+# macOS / Linux
+lsof -i :8742          # note the PID
+kill <PID>
+
+# Windows (PowerShell)
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8742).OwningProcess
+Stop-Process -Id <PID>
+```
+
+**Hop table still says "needs elevated privileges" even after using
+`sudo`/admin.** Make sure you're running the *same* executable you expect,
+and that nothing cached an older unprivileged instance on the same port (see
+above — stop it first, then relaunch elevated).
+
+**Ran once with `sudo`, now a normal (non-sudo) launch fails to read/write
+its database.** The DB became root-owned from the earlier `sudo` run. Either
+keep launching with `sudo` going forward, switch to the Linux `setcap`
+approach (no root needed at all), or reset by removing the data directory
+(you'll lose history): see [Configuration](#configuration) below for its
+exact path per OS.
+
+**Downloaded on macOS/Windows and it won't launch at all ("unidentified
+developer" / SmartScreen block with no way through).** See the Gatekeeper /
+SmartScreen steps in [Quick Start](#quick-start) — both are one-time
+first-run approvals for unsigned executables, not an error in the app.
+
+---
+
+## Running from source
+
+Prefer this if you want to modify the code, or your OS/architecture doesn't
+have a prebuilt artifact. Requires **Python 3.10+** (developed and packaged
+on 3.12 — if `python3 --version` shows something older, install a newer
+Python first).
 
 ```bash
 # 1. Get a virtual environment
@@ -48,11 +175,14 @@ source .venv/bin/activate      # macOS / Linux
 # 3. Install the Python dependencies
 pip install -r requirements.txt
 
-# 4. Run
+# 4. Run (ping-only, unprivileged)
 python -m netpulse.main
+
+# ...or for hop stats too:
+sudo .venv/bin/python -m netpulse.main   # macOS/Linux
 ```
 
-#### Python dependencies (all open source, installed by step 3)
+### Python dependencies (all open source, installed by step 3)
 
 | Package | License | Purpose |
 |---------|---------|---------|
@@ -65,43 +195,11 @@ python -m netpulse.main
 | `icmplib` | LGPL-3.0 | Pure-Python ICMP ping / traceroute |
 | `platformdirs` | MIT | Per-OS config & data directories |
 
-No system libraries or external binaries are required on any OS. On Linux, if
-you want to grant raw-socket capability without running as root (see below),
-you need the `setcap` tool, which ships in `libcap2-bin`
-(`sudo apt install libcap2-bin` on Debian/Ubuntu — preinstalled on most
-distros).
-
----
-
-## Permissions
-
-NetPulse sends ICMP via raw sockets (through `icmplib`, pure Python — no
-shelling out to `ping`/`mtr`, which behave inconsistently across OSes). Raw
-sockets are privileged on most systems, but **how much** privilege you need
-depends on which feature you use:
-
-- **Ping monitoring** (the main "All Targets" latency/loss view) runs
-  **unprivileged** on macOS and most Linux setups — no admin, no sudo. This
-  is the common case; just run the app normally.
-- **Per-hop route stats** (the "Route / Hops" detail view) always need a raw
-  socket on every OS, because setting the TTL per-probe requires one. If hop
-  data doesn't populate, the dashboard tells you directly ("Hop data needs
-  elevated privileges").
-
-**Prefer least privilege — don't reach for root unless you actually need hop
-stats.** When you do need it:
-
-| OS | Least-privilege way to enable hop stats |
-|----|------------------------------------------|
-| **Linux** | Grant the one capability, once — **no root needed at runtime**: `sudo setcap cap_net_raw+ep /path/to/NetPulse`, then run `./NetPulse` as your normal user. |
-| **macOS** | Ping works without elevation. Hop stats need `sudo ./NetPulse`. |
-| **Windows** | Ping works normally. For hop stats, right-click → *Run as administrator*. |
-
-> **Why avoid `sudo` where you can:** running the whole app as root makes its
-> database and data directory root-owned, which can cause a later non-root
-> run to fail opening its own files. The Linux `setcap` approach sidesteps
-> that entirely — the binary carries just the raw-socket capability and
-> otherwise runs as you.
+No system libraries or external binaries are required on any OS — NetPulse
+does **not** depend on the OS `ping`, `mtr`, or `traceroute` binaries. On
+Linux, if you want `setcap` (see Permissions above), it ships in
+`libcap2-bin` (`sudo apt install libcap2-bin` on Debian/Ubuntu — preinstalled
+on most distros).
 
 ---
 
@@ -131,8 +229,8 @@ lan:
   retention_days: 30        # per-minute rollups
 ```
 
-Data (the SQLite DB) is stored in your OS data directory — e.g.
-`~/Library/Application Support/NetPulse/netpulse.db` on macOS.
+Data (the SQLite DB) is stored in the same OS-specific directory as the
+config, e.g. `~/Library/Application Support/NetPulse/netpulse.db` on macOS.
 
 ---
 
@@ -151,7 +249,8 @@ pyinstaller packaging/netpulse.spec --distpath dist --workpath build
 ```
 
 Produces a single-file executable at `dist/NetPulse` (`dist/NetPulse.exe` on
-Windows).
+Windows). Note this local build is unsigned too, same as the CI artifacts —
+the Gatekeeper/SmartScreen steps above still apply.
 
 ---
 
@@ -176,3 +275,9 @@ Windows).
 - **Chart.js is vendored locally** (`netpulse/static/js/vendor/`) rather than
   loaded from a CDN, so there's no live third-party script dependency and the
   app works fully offline.
+- **Unsigned executables**: CI-built artifacts aren't code-signed (that
+  requires a paid Apple Developer ID / Windows code-signing certificate),
+  which is why Gatekeeper/SmartScreen flag them on first run. This is a
+  distribution-trust warning, not a vulnerability — the build is reproducible
+  from this source via the same `pip-audit`-gated CI workflow anyone can
+  read.
