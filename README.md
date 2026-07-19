@@ -69,10 +69,16 @@ chmod +x TraceBeam
 A browser tab opens automatically at `http://127.0.0.1:8742` with three
 seeded targets (`8.8.8.8`, `1.1.1.1`, `google.com`) already collecting data.
 Add your own target (router IP, a server you care about, etc.) from the
-toolbar at the top.
+toolbar at the top. The header shows a live roll-up (e.g. "4 targets · 3
+ok · 1 down") of everything you're watching.
+
+Each row has three actions: **⏸ pause** (stop sampling without losing
+history — the row dims and shows a "paused" tag), **✎ rename**, and **✕
+remove** (deletes the target and its history).
 
 Click any target row to open its detail view — latency timeline chart plus
-the **Route / Hops** table. If that table says *"Hop data needs elevated
+the **Route / Hops** table, with a **⬇ CSV** button to download that
+window's data. If the hop table says *"Hop data needs elevated
 privileges"*, that's expected on a normal (non-admin) launch — see the next
 section to enable it.
 
@@ -154,6 +160,13 @@ exact path per OS.
 developer" / SmartScreen block with no way through).** See the Gatekeeper /
 SmartScreen steps in [Quick Start](#quick-start) — both are one-time
 first-run approvals for unsigned executables, not an error in the app.
+
+**Launched it and the browser tab is blank / "can't connect" for several
+seconds.** Normal on first launch of any given build — macOS/Windows
+security scanning an unsigned executable it hasn't seen before can add a
+several-second delay before the server actually starts responding.
+Subsequent launches of the same executable are fast. Give it ~10 seconds
+before assuming something's wrong.
 
 ---
 
