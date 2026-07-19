@@ -197,7 +197,7 @@ def run_hop_stats(host: str, protocol: str = "auto", cycles: int = 5) -> list[di
         hops = icmplib.traceroute(
             host, count=cycles, timeout=PING_TIMEOUT,
             family=_family_int(host, protocol),
-            max_hops=TRACEROUTE_MAX_HOPS, privileged=True,
+            max_hops=TRACEROUTE_MAX_HOPS,
         )
     except icmplib.SocketPermissionError:
         hop_stats_permission_denied = True
