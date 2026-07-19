@@ -236,7 +236,28 @@ body {
 .c-num { text-align: right; }
 .c-spark { text-align: left; width: 190px; }
 .c-graph { text-align: left; width: 200px; }
-.c-act { width: 34px; text-align: center; }
+.c-act { width: 92px; text-align: center; white-space: nowrap; }
+
+/* Paused targets */
+.mon-row-paused td { opacity: 0.55; }
+.mon-row-paused .c-act { opacity: 1; }
+.paused-tag {
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    background: var(--bg-input);
+    border-radius: 4px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* Header roll-up */
+.header-stats {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-right: 10px;
+}
 
 /* value coloring */
 .mon-table .good { color: var(--good); }

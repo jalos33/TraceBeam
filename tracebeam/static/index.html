@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TraceBeam - LAN Monitor</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231e293b'/%3E%3Cpath d='M4 20h6l3-10 5 14 3-8h7' fill='none' stroke='%233b82f6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <script src="/static/js/vendor/chart.umd.min.js"></script>
 </head>
@@ -11,6 +12,7 @@
     <header class="header">
         <h1>TraceBeam <span class="subtitle">LAN Monitor</span></h1>
         <div class="header-status">
+            <span id="header-stats" class="header-stats"></span>
             <span id="health-dot" class="dot"></span>
             <span id="health-text">Checking...</span>
         </div>
@@ -84,7 +86,7 @@
                                 </tr>
                             </thead>
                             <tbody id="mon-summary-body">
-                                <tr><td colspan="14" class="empty">No targets yet — add one above to start monitoring.</td></tr>
+                                <tr><td colspan="14" class="empty">Loading…</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -102,6 +104,7 @@
                         <span id="detail-name">Target</span>
                         <span id="detail-host" class="mon-detail-host"></span>
                     </div>
+                    <button class="btn btn-sm" onclick="exportCsv()" title="Download this window's data as CSV">⬇ CSV</button>
                     <span id="detail-mtr-ts" class="mon-updated"></span>
                 </div>
 

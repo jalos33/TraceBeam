@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -241,6 +244,38 @@ def target_series(
         raise HTTPException(status_code=404, detail="Target not found")
     data = _window_data(db, target_id, window, DETAIL_MAX_POINTS)
     return {"window": window, "target": _target_dict(target), **data}
+
+
+@router.get("/targets/{target_id}/export")
+def export_series(
+    target_id: int,
+    window: str = Query("24h"),
+    db: Session = Depends(get_db),
+):
+    """Download a target's series for the window as CSV (undownsampled)."""
+    target = db.get(MonitorTarget, target_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="Target not found")
+    # Huge max_points -> _downsample() passes every row through untouched.
+    data = _window_data(db, target_id, window, 10_000_000)
+
+    lines = ["timestamp,rtt_ms,min_ms,max_ms,loss_fraction"]
+    for p in data["series"]:
+        lines.append(
+            f"{p['t']},"
+            f"{'' if p['rtt'] is None else p['rtt']},"
+            f"{'' if p.get('min') is None else p['min']},"
+            f"{'' if p.get('max') is None else p['max']},"
+            f"{p['loss']}"
+        )
+
+    safe_host = re.sub(r"[^A-Za-z0-9._-]", "_", target.host or "target")
+    filename = f"tracebeam_{safe_host}_{window}.csv"
+    return PlainTextResponse(
+        "\n".join(lines) + "\n",
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/targets/{target_id}/hops")
