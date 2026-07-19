@@ -2,9 +2,9 @@
 
 A cross-platform (Windows / macOS / Linux) continuous LAN monitoring
 dashboard — ping latency, packet loss, jitter, MOS, and per-hop route stats
-(like `mtr`), graphed live. Same PingPlotter-style dashboard as the WiPie
-project's LAN Monitor tab, rebuilt as a standalone desktop app with only
-open-source dependencies.
+(like `mtr`), graphed live. Same continuous-monitoring dashboard as the
+WiPie project's LAN Monitor tab, rebuilt as a standalone desktop app with
+only open-source dependencies.
 
 Runs as a local web server (FastAPI) that opens your default browser — no
 Electron, no bundled browser runtime, nothing proprietary.

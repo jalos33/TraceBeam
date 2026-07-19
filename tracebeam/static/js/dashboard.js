@@ -37,7 +37,7 @@ function esc(s) {
     ));
 }
 
-// --- LAN Monitor (PingPlotter-style) ---
+// --- LAN Monitor (continuous per-target monitoring) ---
 const LAT_GOOD = 50, LAT_WARN = 150;   // ms latency-quality thresholds
 let monWindow = '1h';
 let monPaused = false;
@@ -142,7 +142,7 @@ function renderSummary(rows) {
     renderStrips(rows);
 }
 
-// Stacked per-target timeline strips (like PingPlotter's "All Targets" lower panel).
+// Stacked per-target timeline strips (all-targets overview panel).
 function renderStrips(rows) {
     const wrap = document.getElementById('mon-strips');
     if (!wrap) return;

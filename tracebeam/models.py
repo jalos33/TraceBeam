@@ -1,4 +1,4 @@
-"""SQLAlchemy models — PingPlotter-style continuous LAN monitor."""
+"""SQLAlchemy models — continuous per-target LAN monitor."""
 
 from datetime import datetime
 

@@ -1,4 +1,4 @@
-"""Background tasks for the TraceBeam LAN monitor (PingPlotter-style)."""
+"""Background tasks for the TraceBeam LAN monitor (continuous per-target sampling)."""
 
 import asyncio
 import logging
