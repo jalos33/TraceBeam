@@ -254,9 +254,15 @@ the Gatekeeper/SmartScreen steps above still apply.
 
 ---
 
+## License
+
+MIT — see [`LICENSE`](LICENSE). Third-party dependency licenses (including
+an explicit note on `icmplib`'s LGPL-3.0 terms as bundled into the prebuilt
+executables) are in [`NOTICE.md`](NOTICE.md).
+
 ## Security
 
-- **Every dependency is open source** (MIT / BSD / Apache / LGPL). Additions
+- **Every dependency is open source** (MIT / BSD / LGPL). Additions
   are vetted for license and known CVEs before inclusion — see
   `.claude/skills/dependency-security-audit/`. CI runs `pip-audit` against
   `requirements.txt` on every build.
