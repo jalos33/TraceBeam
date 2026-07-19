@@ -252,6 +252,16 @@ Produces a single-file executable at `dist/TraceBeam` (`dist/TraceBeam.exe` on
 Windows). Note this local build is unsigned too, same as the CI artifacts —
 the Gatekeeper/SmartScreen steps above still apply.
 
+Run it the same way as a downloaded build (see
+[Quick Start](#quick-start)), just from `dist/` instead of wherever you
+unzipped a download:
+
+```bash
+./dist/TraceBeam              # ping/loss monitoring only
+
+sudo ./dist/TraceBeam         # + hop stats (macOS/Linux; see Permissions)
+```
+
 ---
 
 ## License
