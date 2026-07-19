@@ -55,10 +55,30 @@ function latClass(v) { if (v == null) return 'bad'; if (v < LAT_GOOD) return 'go
 function lossClass(p) { if (p == null) return ''; if (p <= 0) return 'good'; if (p < 2) return 'warn'; return 'bad'; }
 function mosClass(m) { if (m == null) return 'bad'; if (m >= 4) return 'good'; if (m >= 3) return 'warn'; return 'bad'; }
 function statusOf(row) {
+    if (row.enabled === false) return 'gray';
     if (!row.count) return 'gray';
     if (row.loss_pct >= 50 || row.cur == null) return 'bad';
     if (row.loss_pct > 0 || (row.avg != null && row.avg >= LAT_WARN)) return 'warn';
     return 'good';
+}
+
+// Header roll-up: "4 targets · 3 ok · 1 warn" computed from the summary poll.
+function renderHeaderStats(rows) {
+    const elStats = document.getElementById('header-stats');
+    if (!elStats) return;
+    if (!rows.length) { elStats.textContent = ''; return; }
+    let good = 0, warn = 0, bad = 0, paused = 0;
+    rows.forEach(r => {
+        if (r.enabled === false) { paused++; return; }
+        const s = statusOf(r);
+        if (s === 'bad') bad++; else if (s === 'warn') warn++; else if (s === 'good') good++;
+    });
+    const parts = [rows.length + ' target' + (rows.length === 1 ? '' : 's')];
+    if (good) parts.push(good + ' ok');
+    if (warn) parts.push(warn + ' warn');
+    if (bad) parts.push(bad + ' down');
+    if (paused) parts.push(paused + ' paused');
+    elStats.textContent = parts.join(' · ');
 }
 
 // --- Target CRUD ---
@@ -98,6 +118,36 @@ async function deleteTarget(id, name, ev) {
     }
 }
 
+async function toggleTarget(id, enabled, ev) {
+    if (ev) ev.stopPropagation();
+    try {
+        await fetch(API + '/monitor/targets/' + id, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled }),
+        });
+        loadSummary();
+    } catch (e) {
+        alert('Update failed: ' + e.message);
+    }
+}
+
+async function renameTarget(id, currentName, ev) {
+    if (ev) ev.stopPropagation();
+    const name = prompt('Rename target', currentName);
+    if (name == null || !name.trim() || name.trim() === currentName) return;
+    try {
+        await fetch(API + '/monitor/targets/' + id, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim() }),
+        });
+        loadSummary();
+    } catch (e) {
+        alert('Rename failed: ' + e.message);
+    }
+}
+
 // --- Summary view ---
 async function loadSummary() {
     try {
@@ -112,18 +162,21 @@ async function loadSummary() {
 
 function renderSummary(rows) {
     const body = document.getElementById('mon-summary-body');
+    renderHeaderStats(rows);
     if (!rows.length) {
         body.innerHTML = '<tr><td colspan="14" class="empty">No targets yet — add one above to start monitoring.</td></tr>';
+        renderStrips(rows);
         return;
     }
     body.innerHTML = '';
     rows.forEach(row => {
         monRows[row.id] = row;
-        const tr = el('tr', 'mon-row');
+        const paused = row.enabled === false;
+        const tr = el('tr', 'mon-row' + (paused ? ' mon-row-paused' : ''));
         tr.onclick = () => openDetail(row.id);
         tr.innerHTML = `
             <td class="c-status"><span class="sdot ${statusOf(row)}"></span></td>
-            <td class="c-name">${esc(row.name)}</td>
+            <td class="c-name">${esc(row.name)}${paused ? ' <span class="paused-tag">paused</span>' : ''}</td>
             <td class="c-ip"><code>${esc(row.host)}</code></td>
             <td class="c-num ${latClass(row.cur)}">${fmt(row.cur)}</td>
             <td class="c-num ${latClass(row.avg)}">${fmt(row.avg)}</td>
@@ -135,7 +188,11 @@ function renderSummary(rows) {
             <td class="c-num muted">${row.count || 0}</td>
             <td class="c-num ${row.err ? 'bad' : 'muted'}">${row.err || 0}</td>
             <td class="c-spark"><canvas class="spark" width="180" height="34"></canvas></td>
-            <td class="c-act"><button class="icon-btn" title="Remove" onclick="deleteTarget(${row.id}, '${esc(row.name)}', event)">✕</button></td>`;
+            <td class="c-act">
+                <button class="icon-btn" title="${paused ? 'Resume monitoring' : 'Pause monitoring'}" onclick="toggleTarget(${row.id}, ${paused}, event)">${paused ? '▶' : '⏸'}</button>
+                <button class="icon-btn" title="Rename" onclick="renameTarget(${row.id}, '${esc(row.name)}', event)">✎</button>
+                <button class="icon-btn" title="Remove" onclick="deleteTarget(${row.id}, '${esc(row.name)}', event)">✕</button>
+            </td>`;
         body.appendChild(tr);
         drawSparkline(tr.querySelector('canvas.spark'), row.series || []);
     });
@@ -295,6 +352,12 @@ function openDetail(id) {
     document.getElementById('detail-hops-body').innerHTML = '<tr><td colspan="11" class="empty">Loading…</td></tr>';
     scheduleMonitor();   // detail view polls faster
     loadDetail();
+}
+
+function exportCsv() {
+    if (detailId == null) return;
+    // Content-Disposition on the endpoint makes the browser download rather than navigate.
+    window.location = API + '/monitor/targets/' + detailId + '/export?window=' + monWindow;
 }
 
 function closeDetail() {
