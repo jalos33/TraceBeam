@@ -1,4 +1,4 @@
-# NetPulse default config. Copy this to your OS config dir to override
+# TraceBeam default config. Copy this to your OS config dir to override
 # (see README.md "Configuration"); this file is also read if present in the
 # current working directory.
 

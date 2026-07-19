@@ -1,4 +1,4 @@
-# NetPulse
+# TraceBeam
 
 A cross-platform (Windows / macOS / Linux) continuous LAN monitoring
 dashboard — ping latency, packet loss, jitter, MOS, and per-hop route stats
@@ -26,9 +26,9 @@ Two things matter before you start:
 
 Go to the repo's **[Actions tab](../../actions)**, click the most recent
 green **Build** run, scroll to **Artifacts**, and download the zip for your
-OS (`NetPulse-windows`, `NetPulse-macos`, or `NetPulse-linux`). You'll need
+OS (`TraceBeam-windows`, `TraceBeam-macos`, or `TraceBeam-linux`). You'll need
 to be logged into GitHub with access to this repo — artifacts aren't public.
-Unzip it; you'll have one file: `NetPulse` (`NetPulse.exe` on Windows).
+Unzip it; you'll have one file: `TraceBeam` (`TraceBeam.exe` on Windows).
 
 ### 2. First run — per OS
 
@@ -36,32 +36,32 @@ Unzip it; you'll have one file: `NetPulse` (`NetPulse.exe` on Windows).
 
 ```bash
 cd ~/Downloads          # or wherever you unzipped it
-chmod +x NetPulse
-./NetPulse
+chmod +x TraceBeam
+./TraceBeam
 ```
 
 Gatekeeper will likely block it the first time since it isn't signed by an
-Apple developer ID: *"NetPulse cannot be opened because Apple cannot check
+Apple developer ID: *"TraceBeam cannot be opened because Apple cannot check
 it for malicious software."* Fix it once with either:
 
 ```bash
-xattr -d com.apple.quarantine ./NetPulse
+xattr -d com.apple.quarantine ./TraceBeam
 ```
 
-...or in Finder: right-click (Control-click) `NetPulse` → **Open** →
+...or in Finder: right-click (Control-click) `TraceBeam` → **Open** →
 confirm **Open** in the dialog. After that first approval it runs normally.
 
 **Windows**
 
-Double-click `NetPulse.exe`. SmartScreen will likely show *"Windows
+Double-click `TraceBeam.exe`. SmartScreen will likely show *"Windows
 protected your PC"* since it's unsigned — click **More info** → **Run
 anyway**. This appears once per download.
 
 **Linux**
 
 ```bash
-chmod +x NetPulse
-./NetPulse
+chmod +x TraceBeam
+./TraceBeam
 ```
 
 ### 3. It's running
@@ -83,10 +83,10 @@ the **Route / Hops** table, relaunch with elevated privileges:
 
 | OS | Command |
 |----|---------|
-| **macOS** | `sudo ./NetPulse` |
-| **Linux (recommended, no root needed)** | `sudo setcap cap_net_raw+ep ./NetPulse` once, then just `./NetPulse` normally from then on |
-| **Linux (quick/one-off)** | `sudo ./NetPulse` |
-| **Windows** | Right-click `NetPulse.exe` → **Run as administrator** |
+| **macOS** | `sudo ./TraceBeam` |
+| **Linux (recommended, no root needed)** | `sudo setcap cap_net_raw+ep ./TraceBeam` once, then just `./TraceBeam` normally from then on |
+| **Linux (quick/one-off)** | `sudo ./TraceBeam` |
+| **Windows** | Right-click `TraceBeam.exe` → **Run as administrator** |
 
 If something's already using the port (e.g. an earlier unprivileged run you
 forgot to stop), stop that one first — see
@@ -96,7 +96,7 @@ forgot to stop), stop that one first — see
 
 ## Permissions — why elevation is needed at all
 
-NetPulse sends ICMP via raw sockets (through `icmplib`, pure Python — no
+TraceBeam sends ICMP via raw sockets (through `icmplib`, pure Python — no
 shelling out to `ping`/`mtr`, which behave inconsistently across OSes). Raw
 sockets are privileged on most systems, but **how much** privilege you need
 depends on the feature:
@@ -125,7 +125,7 @@ root-owned files behind.
 
 ## Troubleshooting
 
-**"Address already in use" / server won't start.** Another NetPulse instance
+**"Address already in use" / server won't start.** Another TraceBeam instance
 (privileged or not) is already bound to port 8742. Find and stop it:
 
 ```bash
@@ -176,10 +176,10 @@ source .venv/bin/activate      # macOS / Linux
 pip install -r requirements.txt
 
 # 4. Run (ping-only, unprivileged)
-python -m netpulse.main
+python -m tracebeam.main
 
 # ...or for hop stats too:
-sudo .venv/bin/python -m netpulse.main   # macOS/Linux
+sudo .venv/bin/python -m tracebeam.main   # macOS/Linux
 ```
 
 ### Python dependencies (all open source, installed by step 3)
@@ -195,7 +195,7 @@ sudo .venv/bin/python -m netpulse.main   # macOS/Linux
 | `icmplib` | LGPL-3.0 | Pure-Python ICMP ping / traceroute |
 | `platformdirs` | MIT | Per-OS config & data directories |
 
-No system libraries or external binaries are required on any OS — NetPulse
+No system libraries or external binaries are required on any OS — TraceBeam
 does **not** depend on the OS `ping`, `mtr`, or `traceroute` binaries. On
 Linux, if you want `setcap` (see Permissions above), it ships in
 `libcap2-bin` (`sudo apt install libcap2-bin` on Debian/Ubuntu — preinstalled
@@ -205,12 +205,12 @@ on most distros).
 
 ## Configuration
 
-NetPulse reads `config.yaml` from, in order:
+TraceBeam reads `config.yaml` from, in order:
 
 1. Your OS config directory (`platformdirs`):
-   - Windows: `%APPDATA%\NetPulse\NetPulse\config.yaml`
-   - macOS: `~/Library/Application Support/NetPulse/config.yaml`
-   - Linux: `~/.config/NetPulse/config.yaml`
+   - Windows: `%APPDATA%\TraceBeam\TraceBeam\config.yaml`
+   - macOS: `~/Library/Application Support/TraceBeam/config.yaml`
+   - Linux: `~/.config/TraceBeam/config.yaml`
 2. `config.yaml` in the current working directory
 3. The bundled default
 
@@ -230,7 +230,7 @@ lan:
 ```
 
 Data (the SQLite DB) is stored in the same OS-specific directory as the
-config, e.g. `~/Library/Application Support/NetPulse/netpulse.db` on macOS.
+config, e.g. `~/Library/Application Support/TraceBeam/tracebeam.db` on macOS.
 
 ---
 
@@ -245,10 +245,10 @@ To build locally for the current OS:
 
 ```bash
 pip install pyinstaller
-pyinstaller packaging/netpulse.spec --distpath dist --workpath build
+pyinstaller packaging/tracebeam.spec --distpath dist --workpath build
 ```
 
-Produces a single-file executable at `dist/NetPulse` (`dist/NetPulse.exe` on
+Produces a single-file executable at `dist/TraceBeam` (`dist/TraceBeam.exe` on
 Windows). Note this local build is unsigned too, same as the CI artifacts —
 the Gatekeeper/SmartScreen steps above still apply.
 
@@ -260,7 +260,7 @@ the Gatekeeper/SmartScreen steps above still apply.
   are vetted for license and known CVEs before inclusion — see
   `.claude/skills/dependency-security-audit/`. CI runs `pip-audit` against
   `requirements.txt` on every build.
-- **No credential handling.** NetPulse never prompts for, receives, or stores
+- **No credential handling.** TraceBeam never prompts for, receives, or stores
   a password. Privilege elevation (`setcap` / `sudo` / Administrator) is
   performed by the OS *before* the process starts; the app just inherits the
   raised privilege. It makes no `subprocess`/shell calls and reads no
@@ -272,7 +272,7 @@ the Gatekeeper/SmartScreen steps above still apply.
   local app, so there's no network-facing auth to misconfigure. Only set
   `server.host: 0.0.0.0` if you deliberately want LAN access, and understand
   that exposes the dashboard to your whole network with no authentication.
-- **Chart.js is vendored locally** (`netpulse/static/js/vendor/`) rather than
+- **Chart.js is vendored locally** (`tracebeam/static/js/vendor/`) rather than
   loaded from a CDN, so there's no live third-party script dependency and the
   app works fully offline.
 - **Unsigned executables**: CI-built artifacts aren't code-signed (that

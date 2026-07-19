@@ -1,6 +1,6 @@
-"""PyInstaller entry point — starts the NetPulse server and opens a browser tab."""
+"""PyInstaller entry point — starts the TraceBeam server and opens a browser tab."""
 
-from netpulse.main import run
+from tracebeam.main import run
 
 if __name__ == "__main__":
     run()

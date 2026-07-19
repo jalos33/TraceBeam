@@ -9,9 +9,9 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from netpulse import monitor
-from netpulse.database import get_db
-from netpulse.models import MonitorTarget, PingSample, PingRollup, HopStat
+from tracebeam import monitor
+from tracebeam.database import get_db
+from tracebeam.models import MonitorTarget, PingSample, PingRollup, HopStat
 
 router = APIRouter(prefix="/api/monitor", tags=["monitor"])
 

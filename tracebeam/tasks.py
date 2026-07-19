@@ -1,4 +1,4 @@
-"""Background tasks for the NetPulse LAN monitor (PingPlotter-style)."""
+"""Background tasks for the TraceBeam LAN monitor (PingPlotter-style)."""
 
 import asyncio
 import logging
@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import select
 
-from netpulse.config import get_config, get_nested
-from netpulse.database import SessionLocal
-from netpulse.models import MonitorTarget, PingSample, PingRollup, HopStat
-from netpulse import monitor
+from tracebeam.config import get_config, get_nested
+from tracebeam.database import SessionLocal
+from tracebeam.models import MonitorTarget, PingSample, PingRollup, HopStat
+from tracebeam import monitor
 
-logger = logging.getLogger("netpulse.tasks")
+logger = logging.getLogger("tracebeam.tasks")
 config = get_config()
 scheduler = AsyncIOScheduler()
 
@@ -238,4 +238,4 @@ async def main_async():
             await asyncio.sleep(3600)
     except (KeyboardInterrupt, asyncio.CancelledError):
         scheduler.shutdown()
-        logger.info("NetPulse scheduler shutting down")
+        logger.info("TraceBeam scheduler shutting down")

@@ -1,5 +1,5 @@
-# PyInstaller spec — builds a single-file NetPulse executable.
-# Run from the repo root: pyinstaller packaging/netpulse.spec
+# PyInstaller spec — builds a single-file TraceBeam executable.
+# Run from the repo root: pyinstaller packaging/tracebeam.spec
 #
 # Must be run natively on each target OS (Windows/macOS/Linux) — PyInstaller
 # does not cross-compile. See .github/workflows/build.yml for a matrix build
@@ -16,7 +16,7 @@ a = Analysis(
     pathex=[str(repo_root)],
     binaries=[],
     datas=[
-        (str(repo_root / "netpulse" / "static"), "netpulse/static"),
+        (str(repo_root / "tracebeam" / "static"), "tracebeam/static"),
         (str(repo_root / "config.yaml"), "."),
     ],
     hiddenimports=[
@@ -46,7 +46,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="NetPulse",
+    name="TraceBeam",
     debug=False,
     strip=False,
     upx=False,       # UPX-packed executables trip more AV heuristics; skip it

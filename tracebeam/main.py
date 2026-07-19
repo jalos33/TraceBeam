@@ -1,4 +1,4 @@
-"""FastAPI app for the NetPulse LAN monitor dashboard."""
+"""FastAPI app for the TraceBeam LAN monitor dashboard."""
 
 from __future__ import annotations
 
@@ -15,12 +15,12 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from netpulse import tasks
-from netpulse.config import get_config
-from netpulse.database import init_db
-from netpulse.routers import monitor
+from tracebeam import tasks
+from tracebeam.config import get_config
+from tracebeam.database import init_db
+from tracebeam.routers import monitor
 
-logger = logging.getLogger("netpulse.main")
+logger = logging.getLogger("tracebeam.main")
 config = get_config()
 
 
@@ -28,7 +28,7 @@ def _static_dir() -> Path:
     """Resolve the bundled static dir, whether running from source or a
     PyInstaller-frozen executable (which unpacks to sys._MEIPASS)."""
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        return Path(sys._MEIPASS) / "netpulse" / "static"
+        return Path(sys._MEIPASS) / "tracebeam" / "static"
     return Path(__file__).parent / "static"
 
 
@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
         tasks.scheduler.shutdown()
 
 
-app = FastAPI(title="NetPulse LAN Monitor", lifespan=lifespan)
+app = FastAPI(title="TraceBeam LAN Monitor", lifespan=lifespan)
 
 
 @app.middleware("http")

@@ -1,4 +1,4 @@
-/* === NetPulse Dashboard JS === */
+/* === TraceBeam Dashboard JS === */
 const API = '/api';
 
 // --- Health check ---

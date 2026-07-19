@@ -2,8 +2,8 @@
 
 Uses icmplib (pure Python, no external ping/mtr/traceroute binaries) so
 behavior is identical on Windows/macOS/Linux. Pure helpers here; scheduling
-lives in ``netpulse.tasks`` and the HTTP surface in
-``netpulse.routers.monitor``.
+lives in ``tracebeam.tasks`` and the HTTP surface in
+``tracebeam.routers.monitor``.
 
 Permissions: raw ICMP sockets require elevated privileges on most platforms.
 Ping alone can run unprivileged on macOS/Linux (icmplib falls back

@@ -1,4 +1,4 @@
-"""Configuration loader for NetPulse."""
+"""Configuration loader for TraceBeam."""
 
 from pathlib import Path
 from typing import Any
@@ -7,7 +7,7 @@ import yaml
 from platformdirs import user_config_dir
 
 _CONFIG_PATHS = [
-    Path(user_config_dir("NetPulse", "NetPulse")) / "config.yaml",
+    Path(user_config_dir("TraceBeam", "TraceBeam")) / "config.yaml",
     Path("config.yaml"),
     Path(__file__).parent.parent / "config.yaml",
 ]

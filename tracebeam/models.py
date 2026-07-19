@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, Column, Integer, Float, String, DateTime, Index
 
-from netpulse.database import Base
+from tracebeam.database import Base
 
 
 class MonitorTarget(Base):

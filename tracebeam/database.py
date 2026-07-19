@@ -6,9 +6,9 @@ from platformdirs import user_data_dir
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-_data_dir = Path(user_data_dir("NetPulse", "NetPulse"))
+_data_dir = Path(user_data_dir("TraceBeam", "TraceBeam"))
 _data_dir.mkdir(parents=True, exist_ok=True)
-DB_PATH = _data_dir / "netpulse.db"
+DB_PATH = _data_dir / "tracebeam.db"
 
 engine = create_engine(
     f"sqlite:///{DB_PATH}",
@@ -49,5 +49,5 @@ def get_db():
 
 def init_db():
     """Create all tables."""
-    from netpulse import models  # noqa: F401  (registers models on Base.metadata)
+    from tracebeam import models  # noqa: F401  (registers models on Base.metadata)
     Base.metadata.create_all(bind=engine)
