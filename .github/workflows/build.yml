@@ -13,11 +13,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact: NetPulse-windows
+            artifact: TraceBeam-windows
           - os: macos-latest
-            artifact: NetPulse-macos
+            artifact: TraceBeam-macos
           - os: ubuntu-latest
-            artifact: NetPulse-linux
+            artifact: TraceBeam-linux
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
         run: pip-audit -r requirements.txt
 
       - name: Build executable
-        run: pyinstaller packaging/netpulse.spec --distpath dist --workpath build --noconfirm
+        run: pyinstaller packaging/tracebeam.spec --distpath dist --workpath build --noconfirm
 
       - uses: actions/upload-artifact@v4
         with:
