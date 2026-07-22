@@ -24,11 +24,14 @@ Two things matter before you start:
 
 ### 1. Download
 
-Go to the repo's **[Actions tab](../../actions)**, click the most recent
-green **Build** run, scroll to **Artifacts**, and download the zip for your
-OS (`TraceBeam-windows`, `TraceBeam-macos`, or `TraceBeam-linux`). You'll need
-to be logged into GitHub with access to this repo — artifacts aren't public.
-Unzip it; you'll have one file: `TraceBeam` (`TraceBeam.exe` on Windows).
+Go to the repo's **[Releases page](../../releases/latest)** and download the
+zip for your OS (`TraceBeam-windows.zip`, `TraceBeam-macos.zip`, or
+`TraceBeam-linux.zip`). No GitHub login required. Unzip it; you'll have one
+file: `TraceBeam` (`TraceBeam.exe` on Windows).
+
+(Every push to `main` also builds and uploads per-commit artifacts under the
+**[Actions tab](../../actions)**, if you want an unreleased dev build — those
+do require being logged into GitHub and expire after 90 days.)
 
 ### 2. First run — per OS
 
