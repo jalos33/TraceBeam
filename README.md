@@ -306,6 +306,14 @@ OS — a normal launch silently shows empty hop data by design (see
 error out. Re-launch using the **Elevated** steps for your OS in
 [Install & run](#2-install--run--step-by-step-per-os).
 
+**Linux: browser doesn't open automatically.** TraceBeam asks the OS to open
+one (`xdg-open`) once the server is ready; this fails silently — no error
+printed — on minimal/server installs without a desktop browser registered,
+or when running over SSH without a display. This happens the same way
+whether you're running the zip or from source. Just open
+`http://127.0.0.1:8742` manually in any browser; the server itself is
+running fine either way.
+
 **Linux `setcap` step fails with "command not found."** Install
 `libcap2-bin` first: `sudo apt install libcap2-bin` (Debian/Ubuntu) — most
 other distros ship it preinstalled. See
