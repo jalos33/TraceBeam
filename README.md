@@ -26,46 +26,129 @@ Two things matter before you start:
 
 Go to the repo's **[Releases page](../../releases/latest)** and download the
 zip for your OS (`TraceBeam-windows.zip`, `TraceBeam-macos.zip`, or
-`TraceBeam-linux.zip`). No GitHub login required. Unzip it; you'll have one
-file: `TraceBeam` (`TraceBeam.exe` on Windows).
+`TraceBeam-linux.zip`). No GitHub login required. Each zip unpacks to one
+file: `TraceBeam` (`TraceBeam.exe` on Windows) — unzip steps are in
+[Install & run](#2-install--run--step-by-step-per-os) below.
 
 (Every push to `main` also builds and uploads per-commit artifacts under the
 **[Actions tab](../../actions)**, if you want an unreleased dev build — those
 do require being logged into GitHub and expire after 90 days.)
 
-### 2. First run — per OS
+### 2. Install & run — step by step per OS
 
-**macOS**
+Each OS below has two paths: **normal** (ping/loss monitoring only, no
+special permissions) and **elevated** (adds the `mtr`-style hop stats). Start
+with normal — you can always quit and relaunch elevated later; nothing needs
+reinstalling.
 
-```bash
-cd ~/Downloads          # or wherever you unzipped it
-chmod +x TraceBeam
-./TraceBeam
-```
+<details open>
+<summary><strong>Windows</strong></summary>
 
-Gatekeeper will likely block it the first time since it isn't signed by an
-Apple developer ID: *"TraceBeam cannot be opened because Apple cannot check
-it for malicious software."* Fix it once with either:
+**Normal (unprivileged):**
 
-```bash
-xattr -d com.apple.quarantine ./TraceBeam
-```
+1. Unzip `TraceBeam-windows.zip` (right-click → **Extract All**). You'll get
+   `TraceBeam.exe`.
+2. Double-click `TraceBeam.exe`.
+3. Windows SmartScreen will likely show *"Windows protected your PC"* since
+   the executable isn't code-signed — click **More info** → **Run anyway**.
+   This appears once per downloaded copy.
+4. A console window opens (leave it running) and your browser opens
+   automatically to the dashboard. If the browser doesn't open, go to
+   `http://127.0.0.1:8742` yourself.
+5. To stop TraceBeam, close the console window (or `Ctrl+C` inside it).
 
-...or in Finder: right-click (Control-click) `TraceBeam` → **Open** →
-confirm **Open** in the dialog. After that first approval it runs normally.
+**Elevated (adds hop stats):**
 
-**Windows**
+1. Close any running normal instance first (see step 5 above — two instances
+   can't share the same port).
+2. Right-click `TraceBeam.exe` → **Run as administrator** → confirm the UAC
+   prompt.
+3. Same SmartScreen click-through as above the first time.
 
-Double-click `TraceBeam.exe`. SmartScreen will likely show *"Windows
-protected your PC"* since it's unsigned — click **More info** → **Run
-anyway**. This appears once per download.
+</details>
 
-**Linux**
+<details open>
+<summary><strong>macOS</strong></summary>
 
-```bash
-chmod +x TraceBeam
-./TraceBeam
-```
+**Normal (unprivileged):**
+
+1. Unzip `TraceBeam-macos.zip` (double-click it in Finder, or
+   `unzip TraceBeam-macos.zip` in Terminal). You'll get one file: `TraceBeam`.
+2. Open Terminal and `cd` to wherever you unzipped it, e.g.:
+   ```bash
+   cd ~/Downloads
+   ```
+3. Make it executable (one-time):
+   ```bash
+   chmod +x TraceBeam
+   ```
+4. Run it:
+   ```bash
+   ./TraceBeam
+   ```
+5. Gatekeeper will likely block it the first time since it isn't signed by
+   an Apple developer ID: *"TraceBeam cannot be opened because Apple cannot
+   check it for malicious software."* Clear it once with either:
+   ```bash
+   xattr -d com.apple.quarantine ./TraceBeam
+   ```
+   ...or in Finder: right-click (Control-click) `TraceBeam` → **Open** →
+   confirm **Open** in the dialog. Then re-run step 4.
+6. Your browser opens automatically to the dashboard. If not, go to
+   `http://127.0.0.1:8742` yourself.
+7. To stop TraceBeam, go back to the Terminal window and press `Ctrl+C`.
+
+**Elevated (adds hop stats):**
+
+1. Stop any running normal instance first (`Ctrl+C` in its Terminal window —
+   two instances can't share the same port).
+2. From the same folder:
+   ```bash
+   sudo ./TraceBeam
+   ```
+3. Enter your macOS account password when prompted.
+
+</details>
+
+<details open>
+<summary><strong>Linux</strong></summary>
+
+**Normal (unprivileged):**
+
+1. Unzip it:
+   ```bash
+   unzip TraceBeam-linux.zip
+   ```
+2. Make it executable (one-time):
+   ```bash
+   chmod +x TraceBeam
+   ```
+3. Run it:
+   ```bash
+   ./TraceBeam
+   ```
+4. Your browser opens automatically to the dashboard. If not, go to
+   `http://127.0.0.1:8742` yourself.
+5. To stop TraceBeam, go back to the terminal and press `Ctrl+C`.
+
+**Elevated (adds hop stats) — two options:**
+
+- **Recommended, no `sudo` needed for day-to-day use** — grant the binary
+  just the one raw-socket capability, once:
+  ```bash
+  sudo setcap cap_net_raw+ep ./TraceBeam
+  ```
+  From then on, run it normally (`./TraceBeam`, no `sudo`) and hop stats
+  just work.
+- **Quick/one-off:**
+  ```bash
+  sudo ./TraceBeam
+  ```
+
+Either way, stop any running normal instance first (two instances can't
+share the same port).
+
+</details>
 
 ### 3. It's running
 
@@ -82,24 +165,9 @@ remove** (deletes the target and its history).
 Click any target row to open its detail view — latency timeline chart plus
 the **Route / Hops** table, with a **⬇ CSV** button to download that
 window's data. If the hop table says *"Hop data needs elevated
-privileges"*, that's expected on a normal (non-admin) launch — see the next
-section to enable it.
-
-### 4. Want to see hop stats (the `mtr`-style view)?
-
-Ping/loss monitoring already works with the command above. To also populate
-the **Route / Hops** table, relaunch with elevated privileges:
-
-| OS | Command |
-|----|---------|
-| **macOS** | `sudo ./TraceBeam` |
-| **Linux (recommended, no root needed)** | `sudo setcap cap_net_raw+ep ./TraceBeam` once, then just `./TraceBeam` normally from then on |
-| **Linux (quick/one-off)** | `sudo ./TraceBeam` |
-| **Windows** | Right-click `TraceBeam.exe` → **Run as administrator** |
-
-If something's already using the port (e.g. an earlier unprivileged run you
-forgot to stop), stop that one first — see
-[Troubleshooting](#troubleshooting).
+privileges"*, that's expected on a normal (non-admin) launch — see the
+**Elevated** steps for your OS in [Install & run](#2-install--run--step-by-step-per-os)
+above to enable it.
 
 ---
 
@@ -120,15 +188,70 @@ depends on the feature:
   root/setuid too.
 
 **Prefer least privilege — don't reach for root/admin unless you actually
-want hop stats.** On Linux specifically, `setcap` (see table above) is
-better than `sudo` long-term: it grants the binary just the one raw-socket
-capability and otherwise runs as your normal user, so it can't leave
-root-owned files behind.
+want hop stats.** On Linux specifically, `setcap` (see the Linux **Elevated**
+steps above) is better than `sudo` long-term: it grants the binary just the
+one raw-socket capability and otherwise runs as your normal user, so it
+can't leave root-owned files behind.
 
 > **Why avoid running the whole app as root/sudo where you can:** it makes
 > the database and data directory root-owned, which can make a later
 > non-root run fail to open its own files (see
 > [Troubleshooting](#troubleshooting) if that happens).
+
+---
+
+## FAQ
+
+**Do I need Python installed to run the downloaded executable?** No. The
+Releases zips are self-contained (PyInstaller-built) — no Python, no `pip
+install`, nothing else to set up. Python is only needed if you choose
+[Running from source](#running-from-source).
+
+**Is it safe to run this as admin/root?** The elevated launch only grants
+raw-socket access for the hop-stats feature — TraceBeam makes no network
+calls out, accepts no credentials, and shells out to nothing (see
+[Security](#security)). That said, prefer the least-privilege option for
+your OS (Linux `setcap`, in particular) over blanket `sudo`/Administrator
+when you can — see [Permissions](#permissions--why-elevation-is-needed-at-all).
+
+**Why does my OS say this is from an "unidentified developer" / block it
+with SmartScreen?** The executables aren't code-signed (that requires a paid
+Apple Developer ID or Windows code-signing certificate). This is a
+distribution-trust warning, not a vulnerability report — see
+[Security](#security) for why, and the per-OS steps in
+[Install & run](#2-install--run--step-by-step-per-os) for how to get past it.
+
+**Does TraceBeam send my data anywhere / phone home?** No. It binds to
+`127.0.0.1` by default, makes no outbound calls, and the only thing it does
+over the network is ping/traceroute the targets you configure. Everything it
+collects stays in a local SQLite file — see [Security](#security).
+
+**Can other devices on my LAN open the dashboard?** Not by default — it
+binds to `127.0.0.1` (localhost only). You'd have to deliberately set
+`server.host: 0.0.0.0` in `config.yaml` (see [Configuration](#configuration)),
+and doing so exposes the dashboard to your whole network with no
+authentication, so only do it if you understand that tradeoff.
+
+**Does closing the browser tab stop monitoring?** No. Sampling runs in the
+TraceBeam server process itself (a background scheduler), independent of any
+open browser tab — closing or reopening the tab just reconnects to data
+that kept collecting. To actually stop monitoring, stop the process itself
+(`Ctrl+C` in its terminal/console window, or close the window on Windows).
+
+**How is this different from just running `ping`/`mtr` myself?** TraceBeam
+continuously samples multiple targets in the background, stores history
+(latency, loss, jitter, MOS, hop data) in a local database, and graphs it
+live in a browser dashboard — rather than a one-off terminal snapshot. It
+also doesn't shell out to the OS `ping`/`mtr`/`traceroute` binaries at all;
+it speaks ICMP directly via `icmplib` for consistent behavior across OSes.
+
+**Can I change the seeded ping targets, sample interval, or port?** Yes —
+see [Configuration](#configuration). You can also add/rename/pause/remove
+targets live from the dashboard toolbar without touching config files.
+
+**How do I reset all history / start fresh?** Stop TraceBeam, then delete
+the SQLite DB file (see [Configuration](#configuration) for its per-OS
+path). It's recreated empty on next launch.
 
 ---
 
@@ -161,8 +284,9 @@ exact path per OS.
 
 **Downloaded on macOS/Windows and it won't launch at all ("unidentified
 developer" / SmartScreen block with no way through).** See the Gatekeeper /
-SmartScreen steps in [Quick Start](#quick-start) — both are one-time
-first-run approvals for unsigned executables, not an error in the app.
+SmartScreen steps in [Install & run](#2-install--run--step-by-step-per-os) —
+both are one-time first-run approvals for unsigned executables, not an error
+in the app.
 
 **Launched it and the browser tab is blank / "can't connect" for several
 seconds.** Normal on first launch of any given build — macOS/Windows
@@ -170,6 +294,22 @@ security scanning an unsigned executable it hasn't seen before can add a
 several-second delay before the server actually starts responding.
 Subsequent launches of the same executable are fast. Give it ~10 seconds
 before assuming something's wrong.
+
+**macOS/Linux: `zsh: permission denied: ./TraceBeam` (or `bash:` /
+`Permission denied`).** You skipped (or it didn't take) the one-time
+`chmod +x TraceBeam` step — run it, then try `./TraceBeam` again.
+
+**Ping/loss monitoring works but hop stats never populate, even without any
+error shown.** Confirm you actually launched the elevated variant for your
+OS — a normal launch silently shows empty hop data by design (see
+[Permissions](#permissions--why-elevation-is-needed-at-all)), it doesn't
+error out. Re-launch using the **Elevated** steps for your OS in
+[Install & run](#2-install--run--step-by-step-per-os).
+
+**Linux `setcap` step fails with "command not found."** Install
+`libcap2-bin` first: `sudo apt install libcap2-bin` (Debian/Ubuntu) — most
+other distros ship it preinstalled. See
+[Running from source](#running-from-source) for the equivalent note.
 
 ---
 
