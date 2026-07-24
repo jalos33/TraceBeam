@@ -10,3 +10,4 @@ dist/
 *.spec.bak
 .DS_Store
 ARCHITECTURE.md
+PATENT_ANALYSIS.md

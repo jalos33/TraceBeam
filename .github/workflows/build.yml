@@ -51,6 +51,20 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate CycloneDX SBOM (isolated install of runtime deps)
+        run: |
+          python -m venv sbomenv
+          ./sbomenv/bin/pip install --upgrade pip
+          ./sbomenv/bin/pip install -r requirements.txt cyclonedx-bom
+          ./sbomenv/bin/cyclonedx-py environment ./sbomenv --output-format JSON -o sbom.cdx.json \
+            || echo '{}' > sbom.cdx.json
+
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -69,8 +83,8 @@ jobs:
         run: |
           tag="${{ github.ref_name }}"
           if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release upload "$tag" artifacts/*.zip --repo "${{ github.repository }}" --clobber
+            gh release upload "$tag" artifacts/*.zip sbom.cdx.json --repo "${{ github.repository }}" --clobber
           else
-            gh release create "$tag" artifacts/*.zip \
+            gh release create "$tag" artifacts/*.zip sbom.cdx.json \
               --repo "${{ github.repository }}" --title "$tag" --generate-notes
           fi

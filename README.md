@@ -432,7 +432,14 @@ sudo ./dist/TraceBeam         # + hop stats (macOS/Linux; see Permissions)
 
 MIT — see [`LICENSE`](LICENSE). Third-party dependency licenses (including
 an explicit note on `icmplib`'s LGPL-3.0 terms as bundled into the prebuilt
-executables) are in [`NOTICE.md`](NOTICE.md).
+executables) are in [`NOTICE.md`](NOTICE.md). The project's origin and
+independent-implementation record is in [`PROVENANCE.md`](PROVENANCE.md).
+
+TraceBeam is an independent, open-source project. It is **not affiliated with,
+endorsed by, or derived from** PingPlotter or Pingman Tools LLC, or any other
+commercial network-monitoring product. Its metrics (ping, per-hop route stats,
+MOS) implement long-established public standards and techniques (ICMP,
+traceroute, the ITU-T G.107 E-model).
 
 ## Security
 
